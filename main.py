@@ -168,22 +168,25 @@ def print_results(results):
 
     y_n = input("Would you like to export this data to a CSV file? (y/n) ")
     if y_n.lower() == 'y':
-        filename = input("Enter filename (e.g., results.csv): ")
-        with open(filename, 'w', newline='') as file:
-            writer = csv.DictWriter(
-              file,
-              fieldnames=[
-                'ID',
-                'ORIGIN_AIRPORT',
-                'DESTINATION_AIRPORT',
-                'AIRLINE',
-                'DELAY'
-              ],
-              extrasaction='ignore')
-            writer.writeheader()
-            for result in results:
-                data = result._mapping
-                writer.writerow(data)
+        try:
+            filename = input("Enter filename (e.g., results.csv): ")
+            with open(filename, 'w', newline='') as file:
+                writer = csv.DictWriter(
+                file,
+                fieldnames=[
+                    'ID',
+                    'ORIGIN_AIRPORT',
+                    'DESTINATION_AIRPORT',
+                    'AIRLINE',
+                    'DELAY'
+                ],
+                extrasaction='ignore')
+                writer.writeheader()
+                for result in results:
+                    data = result._mapping
+                    writer.writerow(data)
+        except FileNotFoundError:
+            print('Failed to save results due to invalid filename.')
 
 
 def show_menu_and_get_input():
