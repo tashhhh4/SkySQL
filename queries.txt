@@ -1,0 +1,205 @@
+/* Finding out if Sunday is classified as 7 or 0 */
+SELECT YEAR, MONTH, DAY, DAY_OF_WEEK FROM flights
+WHERE
+  YEAR = 2015
+  AND MONTH = 1
+  AND DAY = 4;
+
+
+/* Select a particular flight in a pretty table */
+SELECT
+  flights.ID AS 'id',
+  flights.YEAR AS 'year',
+  flights.MONTH AS 'month',
+  flights.DAY AS 'day',
+  flights.ORIGIN_AIRPORT AS 'origin',
+  flights.DESTINATION_AIRPORT AS 'destination',
+  airlines.AIRLINE AS 'airline_name',
+  flights.DEPARTURE_DELAY AS 'delay'
+FROM flights JOIN airlines ON flights.AIRLINE = airlines.ID
+WHERE flights.ID = <flight_id>;
+
+
+/* Same thing but add airline_name column */
+SELECT
+  ID AS 'id',
+  YEAR AS 'year',
+  MONTH AS 'month',
+  DAY AS 'day',
+  ORIGIN_AIRPORT AS 'origin',
+  DESTINATION_AIRPORT AS 'destination',
+  AIRLINE AS 'airline_name',
+  DEPARTURE_DELAY AS 'delay'
+FROM flights
+WHERE id = <flight_id>;
+
+
+/* Select IDs and airline codes of all cancelled flights */
+SELECT
+  ID AS 'id',
+  AIRLINE AS 'airline code'
+  -- Assuming id of airline object
+  -- is meant by "airline codes"
+FROM flights
+WHERE CANCELLED = 1
+ORDER BY AIRLINE, ID;
+
+
+/* Count total number of flights for each day of the week */
+SELECT
+  DAY_OF_WEEK AS 'day_of_week',
+  COUNT(*) AS 'total_flights'
+FROM flights
+GROUP BY DAY_OF_WEEK
+ORDER BY COUNT(*) DESC;
+
+
+/* Improve day of week count table render */
+SELECT
+  CASE DAY_OF_WEEK
+    WHEN 1 THEN 'Monday'
+    WHEN 2 THEN 'Tuesday'
+    WHEN 3 THEN 'Wednesday'
+    WHEN 4 THEN 'Thursday'
+    WHEN 5 THEN 'Friday'
+    WHEN 6 THEN 'Saturday'
+    WHEN 7 THEN 'Sunday'
+  END AS day_of_week,
+  COUNT(*) AS total_flights
+FROM flights
+GROUP BY DAY_OF_WEEK
+ORDER BY COUNT(*) DESC;
+
+
+/* Select top 5 most delayed flights on a given day */
+SELECT
+  -- Include flight number, origin, and destination
+  ID AS 'id',
+  FLIGHT_NUMBER AS 'flight_number',
+  ORIGIN_AIRPORT AS 'origin',
+  DESTINATION_AIRPORT AS 'destination',
+  DEPARTURE_DELAY AS 'delay'
+FROM flights
+WHERE
+  -- Filter for the date
+  YEAR = <year>
+  AND MONTH = <month>
+  AND DAY = <day>
+ORDER BY DEPARTURE_DELAY DESC
+LIMIT 5;
+
+
+/* Top 10 busiest airports by total departures */
+SELECT
+  ORIGIN_AIRPORT as airport,
+  COUNT(*) AS total_departures
+GROUP BY ORIGIN_AIRPORT
+WHERE
+  CANCELLED = 0
+  -- Include cancelled flights
+  /* OR CANCELLED = 1 */
+
+
+/* Flights delayed more than 1 day
+SELECT
+  ID AS 'id',
+  ORIGIN_AIRPORT AS 'origin',
+  DESTINATION_AIRPORT AS 'destination',
+  DEPARTURE_DELAY AS 'delay_time'
+FROM flights
+WHERE
+  DEPARTURE_DELAY > 24 * 60;
+
+
+/* Airlines which ran any flights from JFK airport */
+SELECT
+  DISTINCT airlines.AIRLINE
+FROM airlines
+  JOIN flights ON airlines.ID = flights.AIRLINE
+WHERE
+  flights.ORIGIN_AIRPORT = 'JFK';
+
+
+/* Average delay per airline */
+SELECT
+  airlines.AIRLINE AS 'airline',
+  ROUND(AVG(DEPARTURE_DELAY)) AS 'average_delay'
+FROM flights
+  JOIN airlines ON airlines.ID = flights.AIRLINE
+
+-- Exclude flights that were not delayed at all
+/* WHERE DEPARTURE_DELAY > 0 */
+
+GROUP BY airlines.AIRLINE
+ORDER BY AVG(DEPARTURE_DELAY) DESC;
+
+
+/* Ignore negatives on, and order by delay */
+SELECT
+  airlines.AIRLINE AS 'airline',
+  ROUND(AVG(DEPARTURE_DELAY)) AS 'average_delay'
+FROM flights
+  JOIN airlines ON airlines.ID = flights.AIRLINE
+
+-- Exclude flights that were not delayed at all
+WHERE DEPARTURE_DELAY > 0
+
+GROUP BY airlines.AIRLINE
+ORDER BY AVG(DEPARTURE_DELAY) DESC;
+
+
+/* Average delays by origin airport (flights >= 5000), sorted */
+SELECT
+  airports.AIRPORT AS 'airport',
+  COUNT(*) AS 'num_of_flights',
+  ROUND(AVG(DEPARTURE_DELAY), 1) AS 'average_delay'
+FROM flights
+  JOIN airports ON airports.IATA_CODE = flights.ORIGIN_AIRPORT
+GROUP BY ORIGIN_AIRPORT
+
+-- Only show airports with more than 5000 flights
+HAVING COUNT(*) > 5000
+
+ORDER BY AVG(DEPARTURE_DELAY) DESC;
+
+
+
+/*** DESTRUCTIVE QUERIES -- TEST ON COPY!!! ***/
+
+/* Prune cancelled flights that for some reason still have departure times */
+DELETE
+FROM flights
+WHERE
+  CANCELLED = 1
+  AND DEPARTURE_TIME != ''
+  AND DEPARTURE_TIME IS NOT NULL;
+
+
+/* Normalize DEPARTURE_DELAY field */
+UPDATE flights
+SET DEPARTURE_DELAY = 0
+WHERE
+  DEPARTURE_DELAY = ''
+  OR DEPARTURE_DELAY IS NULL;
+
+
+/* Prune data from Frontier Airlines Inc. */
+-- Combining a DELETE with a JOIN is only supported in MySQL
+DELETE
+FROM flights
+  JOIN airlines ON airlines.ID = flights.AIRLINE
+WHERE
+  airlines.AIRLINE = 'Frontier Airlines Inc.';
+
+
+/* Prune data from Frontier Airlines Inc. using a subquery */
+DELETE
+FROM flights
+WHERE AIRLINE IN (
+
+  -- Use a subquery to select id of Frontier Airlines Inc.
+  SELECT ID
+  FROM airlines
+  WHERE AIRLINE = 'Frontier Airlines Inc.'
+
+);
