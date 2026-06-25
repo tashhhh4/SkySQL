@@ -18,7 +18,7 @@
 
 ### Install dependencies with uv
 
-    uv pip install sqlalchemy
+    uv pip install -r requirements.txt
 
 ### Run the main script with uv
 
