@@ -191,13 +191,11 @@ def pct_delays_by_route_map():
     results = flights_data.get_pct_delayed_flights_by_route()
     #  origin  dest  total del   pct               origin  lat, lon          destination lat, lon
     # ('ATL', 'AUS', 775, 117, 15.096774193548388, '33.64044', '-84.42694', '30.19453', '-97.66987')
+    #  0      1      2    3    4                    5            6           7            8
+    origin_codes = []
 
-    print('Example results')
-    print('---------------')
-    print(results[0])
-    print(results[1])
-    graphs.draw_pct_delay_by_route_map(None)
-    # save_fig(fig)
+    fig = graphs.draw_pct_delay_by_route_map(None)
+    save_fig(fig)
 
 
 def show_menu_and_get_input():

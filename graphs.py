@@ -1,6 +1,7 @@
 import numpy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+from cartopy.io.img_tiles import OSM
 import contextily
 import folium
 import geodatasets
@@ -18,8 +19,8 @@ COLOR_GRADIENT = colormap.YlGnBu
 RED_GRADIENT = colormap.Reds
 COLORMAP_3 = colormap.viridis_r
 GLOBAL_EXTENT = [-180, 180, -90, 90]
-USA_EXTENT = [-125, -66.5, 24, 50]
-MAP_PATH = "maps/NE1_LR_LC.tif"
+USA_EXTENT = [-127, -68.5, 24, 45] # min_lon, max_lon, min_lat, max_lat
+# MAP_PATH = "maps/NE1_LR_LC.tif"
 
 
 def validate_chart_data(data, sets):
@@ -153,28 +154,19 @@ def draw_pct_delay_by_route_heat(data):
 
 
 def draw_pct_delay_by_route_map(data):
-    USA_COORDS = [-125, -66.5]
-    map = folium.Map(location=USA_COORDS, tiles="OpenStreetMap", zoom_start=9)
-    print("Created map.")
+    tiler = OSM()
 
+    fig = pyplot.figure(figsize=(12, 6), dpi=100)
+    ax = pyplot.axes(projection=tiler.crs)
+    ax.set_extent(USA_EXTENT)
+    ax.add_image(tiler, 5) # Zoom level - the higher,
+                           # the more tiles to download
+    ax.plot(
+        [-74.0, -73.95],
+        [40.70, 40.80],
+        transform=ccrs.PlateCarree(),
+        color="red",
+        linewidth=3
+    )
 
-#     map_img = Image.open(MAP_PATH)
-#     arr = numpy.array(map_img)
-#
-#     fig = pyplot.figure(figsize=(12, 6), dpi=100)
-#     ax = pyplot.axes(projection=ccrs.LambertConformal())
-#
-#     ax.imshow(
-#         arr,
-#         origin="upper",
-#         extent=GLOBAL_EXTENT,
-#         transform=ccrs.PlateCarree()
-#     )
-#
-#     ax.set_extent(USA_EXTENT, crs=ccrs.PlateCarree())
-#     ax.coastlines()
-#
-#     ax.set_axis_off()
-#     pyplot.subplots_adjust(left=0, right=1, top=1, bottom=0)
-#
-#     return fig
+    return fig
