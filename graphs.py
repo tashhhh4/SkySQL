@@ -1,8 +1,11 @@
 import numpy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-import geopandas
 import contextily
+import folium
+import geodatasets
+import geopandas
+import pandas
 import rasterio
 from PIL import Image
 from matplotlib import (
@@ -149,77 +152,29 @@ def draw_pct_delay_by_route_heat(data):
     return fig
 
 
-# OpenStreetMap -> Map Tiles -> Raster Tiles
-
-
 def draw_pct_delay_by_route_map(data):
-    map_img = Image.open(MAP_PATH)
-    arr = numpy.array(map_img)
-
-    fig = pyplot.figure(figsize=(12, 6), dpi=100)
-    ax = pyplot.axes(projection=ccrs.LambertConformal())
-
-    ax.imshow(
-        arr,
-        origin="upper",
-        extent=GLOBAL_EXTENT,
-        transform=ccrs.PlateCarree()
-    )
-
-    ax.set_extent(USA_EXTENT, crs=ccrs.PlateCarree())
-    ax.coastlines()
-
-    ax.set_axis_off()
-    pyplot.subplots_adjust(left=0, right=1, top=1, bottom=0)
-
-    return fig
+    USA_COORDS = [-125, -66.5]
+    map = folium.Map(location=USA_COORDS, tiles="OpenStreetMap", zoom_start=9)
+    print("Created map.")
 
 
-def draw_pct_delay_by_route_map_ver2(data):
-
-    fig = pyplot.figure(figsize=(12, 6), dpi=100)
-    ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
-
-    ax.stock_img()
-    ax.coastlines()
-    ax.set_extent([-125, -66.5, 24, 50], crs=ccrs.Geodetic())
-    ax.set_axis_off()
-    
-    pyplot.subplots_adjust(left=0, right=1, top=1, bottom=0)
-
-    return fig    
-
-
-def draw_pct_delay_by_route_map_ver1(data):
-
-    fig, ax = pyplot.subplots(figsize=(12, 6), dpi=100)
-
-    states = geopandas.read_file(
-        geopandas.datasets.get_path("naturalearth_lowres")
-    )
-    usa = states[states["name"] == "United States of America"].to_crs(epsg=3857)
-    usa.boundary.plot(ax=x, linewidth=0.5, color="black")
-
-    contextily.add_basemap(ax, source=contextily.providers.Stamen.TerrainBackground)
-
-    ax.set_axis_off()
-
-    pyplot.tight_layout
-
-    return fig
-
-
-def draw_pct_delay_by_route_map_ver0(data):
-
-    fig = pyplot.figure(figsize=(12, 6), dpi=100)
-    ax = pyplot.axes(projection=cartopy.crs.LambertConformal())
-
-    # ax.add_feature(cartopy.feature.OCEAN)
-    # ax.add_feature(cartopy.feature.LAND)
-    ax.add_feature(cartopy.feature.STATES)
-    ax.add_feature(cartopy.feature.BORDERS)
-    ax.add_feature(cartopy.feature.COASTLINE)
-
-    ax.set_extent([-125, -66.5, 24, 50], crs=cartopy.crs.Geodetic())
-
-    return fig
+#     map_img = Image.open(MAP_PATH)
+#     arr = numpy.array(map_img)
+#
+#     fig = pyplot.figure(figsize=(12, 6), dpi=100)
+#     ax = pyplot.axes(projection=ccrs.LambertConformal())
+#
+#     ax.imshow(
+#         arr,
+#         origin="upper",
+#         extent=GLOBAL_EXTENT,
+#         transform=ccrs.PlateCarree()
+#     )
+#
+#     ax.set_extent(USA_EXTENT, crs=ccrs.PlateCarree())
+#     ax.coastlines()
+#
+#     ax.set_axis_off()
+#     pyplot.subplots_adjust(left=0, right=1, top=1, bottom=0)
+#
+#     return fig
