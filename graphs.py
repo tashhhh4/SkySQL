@@ -14,14 +14,37 @@ from matplotlib import (
     cm as colormap
 )
 
+import statistics
+
 BLUE = "#2476b3"
 COLOR_GRADIENT = colormap.YlGnBu
 RED_GRADIENT = colormap.Reds
-RED_GREEN_GRADIENT =
+GREED_RED_GRADIENT = colors.LinearSegmentedColormap.from_list(
+    "ryg",
+    [
+        "#007d00",  # green
+        "#ffff00",  # yellow
+        "#ff0000",  # red
+    ]
+)
 COLORMAP_3 = colormap.viridis_r
 GLOBAL_EXTENT = [-180, 180, -90, 90]
 USA_EXTENT = [-127, -68.5, 24, 45] # min_lon, max_lon, min_lat, max_lat
-# MAP_PATH = "maps/NE1_LR_LC.tif"
+
+
+def max_2(list_):
+    """ Returns the 2nd largest value in a list. """
+    if not list_:
+        return None
+    if not len(list_) >= 2:
+        return None
+    largest = list_[0]
+    second_largest = None
+    for item in list_:
+        if item > largest:
+            second_largest = largest
+            largest = item
+    return second_largest
 
 
 def validate_chart_data(data, sets):
@@ -164,6 +187,8 @@ def draw_pct_delay_by_route_map(data):
           }
     """
     validate_chart_data(data, ["routes", "pcts"])
+    routes = data["routes"]
+    percentages = data["pcts"]
 
     tiler = OSM()
 
@@ -173,7 +198,13 @@ def draw_pct_delay_by_route_map(data):
     ax.add_image(tiler, 5) # Zoom level - the higher,
                            # the more tiles to download
 
-    for route, pct in zip(data["routes"], data["pcts"]):
+    normalization = colors.Normalize(
+        vmin=min(percentages),
+        vmax=max_2(percentages) # for some reason there is a 100% in the dataset
+    )
+    cmap = GREED_RED_GRADIENT
+
+    for route, pct in zip(routes, percentages):
         ((origin_lat, origin_lon),
          (destination_lat, destination_lon)) = route
         origin_lat = float(origin_lat)
@@ -181,13 +212,15 @@ def draw_pct_delay_by_route_map(data):
         destination_lat = float(destination_lat)
         destination_lon = float(destination_lon)
 
+        color = cmap(normalization(pct))
+
         ax.plot(
             [origin_lon, destination_lon],
             [origin_lat, destination_lat],
             transform=ccrs.PlateCarree(),
-            color="red",
+            color=color,
             linewidth=1,
-            alpha=0.1,
+            alpha=0.6,
         )
 
     fig.canvas.draw()
