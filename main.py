@@ -189,12 +189,18 @@ def pct_delays_by_route_map():
     indicating the highest.
     """
     results = flights_data.get_pct_delayed_flights_by_route()
-    #  origin  dest  total del   pct               origin  lat, lon          destination lat, lon
-    # ('ATL', 'AUS', 775, 117, 15.096774193548388, '33.64044', '-84.42694', '30.19453', '-97.66987')
-    #  0      1      2    3    4                    5            6           7            8
-    origin_codes = []
+    #  origin  dest  total del  pct | o:lat, lon | d:lat, lon
+    # ('ATL', 'AUS', 775, 117, 15.0, '33', '-84', '30', '-97')
+    #  0      1      2    3    4      5     6      7      8
 
-    fig = graphs.draw_pct_delay_by_route_map(None)
+    routes = [((r[5], r[6]), (r[7], r[8]))
+              for r in results]
+    pcts = [r[4] for r in results]
+
+    fig = graphs.draw_pct_delay_by_route_map({
+        "routes": routes,
+        "pcts": pcts,
+    })
     save_fig(fig)
 
 

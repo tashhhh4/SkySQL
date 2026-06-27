@@ -154,19 +154,69 @@ def draw_pct_delay_by_route_heat(data):
 
 
 def draw_pct_delay_by_route_map(data):
+    """ Plots lines over a map of the continental USA,
+        with red lines representing the highest delays.
+        `data` must contain:
+          {
+            "routes": [list of ((lat, lon) (lat, lon))],
+            "pcts": [percentage delay for each route],
+          }
+    """
+    validate_chart_data(data, ["routes", "pcts"])
+
     tiler = OSM()
 
     fig = pyplot.figure(figsize=(12, 6), dpi=100)
     ax = pyplot.axes(projection=tiler.crs)
-    ax.set_extent(USA_EXTENT)
+    ax.set_extent(USA_EXTENT, crs=ccrs.PlateCarree())
     ax.add_image(tiler, 5) # Zoom level - the higher,
                            # the more tiles to download
+
+    print('ax is', type(ax))
+    print('tiler.crs is', tiler.crs, type(tiler.crs))
+
+    for route, pct in zip(data["routes"], data["pcts"]):
+        ((origin_lat, origin_lon),
+         (destination_lat, destination_lon)) = route
+
+        # print('route is', route)
+        # print('origin:', origin_lat, origin_lon)
+        # print('destination:', destination_lat, destination_lon)
+
+        ax.plot(
+            [origin_lon, destination_lon],
+            [origin_lat, destination_lat],
+            transform=ccrs.PlateCarree(),
+            color="red",
+            linewidth=5,
+            zorder=100,
+        )
+
+    ax.scatter(
+        [-84.42694],
+        [33.64044],
+        transform=ccrs.PlateCarree(),
+        color="yellow",
+        s=100,
+        zorder=1000,
+    )
+
     ax.plot(
-        [-74.0, -73.95],
-        [40.70, 40.80],
+        [-84.42694, -72.68323],
+        [33.64044, 41.93887],
+        color="red",
+        linewidth=5,
+    )
+
+    ax.plot(
+        [-84.42694, -72.68323],
+        [33.64044, 41.93887],
         transform=ccrs.PlateCarree(),
         color="red",
-        linewidth=3
+        linewidth=8,
+        zorder=1000,
     )
+
+    fig.canvas.draw()
 
     return fig
