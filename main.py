@@ -17,6 +17,62 @@ def save_fig(fig):
     fig.savefig(filename, pad_inches=0, bbox_inches='tight')
 
 
+def save_csv(results):
+    y_n = input("Would you like to export this data to a CSV file? (y/n) ")
+    if y_n.lower() == 'y':
+        try:
+            filename = input("Enter filename (e.g., results.csv): ")
+            with open(filename, 'w', newline='') as file:
+                writer = csv.DictWriter(
+                    file,
+                    fieldnames=[
+                        'ID',
+                        'ORIGIN_AIRPORT',
+                        'DESTINATION_AIRPORT',
+                        'AIRLINE',
+                        'DELAY'
+                    ],
+                    extrasaction='ignore')
+                writer.writeheader()
+                for result in results:
+                    data = result._mapping
+                    writer.writerow(data)
+        except FileNotFoundError:
+            print('Failed to save results due to invalid filename.')
+
+
+def print_results(results):
+    """
+    Get a list of flight results (List of dictionary-like objects from SQLAachemy).
+    Even if there is one result, it should be provided in a list.
+    Each object *has* to contain the columns:
+    FLIGHT_ID, ORIGIN_AIRPORT, DESTINATION_AIRPORT, AIRLINE, and DELAY.
+    """
+    for result in results:
+        # turn result into dictionary
+        result = result._mapping
+
+        # Check that all required columns are in place
+        try:
+            delay = int(result['DELAY']) if result['DELAY'] else 0  # If delay columns is NULL, set it to 0
+            origin = result['ORIGIN_AIRPORT']
+            dest = result['DESTINATION_AIRPORT']
+            airline = result['AIRLINE']
+        except (ValueError, sqlalchemy.exc.SQLAlchemyError) as e:
+            print("Error showing results: ", e)
+            return
+
+        # Different prints for delayed and non-delayed flights
+        if delay and delay > 0:
+            print(f"{result['ID']}. {origin} -> {dest} by {airline}, Delay: {delay} Minutes")
+        else:
+            print(f"{result['ID']}. {origin} -> {dest} by {airline}")
+
+    print(f"Got {len(results)} results.")
+
+    save_csv(results)
+
+
 def delayed_flights_by_airline():
     """
     Asks the user for a textual airline name (any string will work here).
@@ -134,59 +190,6 @@ def pct_delays_by_route_map():
     """
     fig = graphs.draw_pct_delay_by_route_map(None)
     save_fig(fig)
-
-
-def print_results(results):
-    """
-    Get a list of flight results (List of dictionary-like objects from SQLAachemy).
-    Even if there is one result, it should be provided in a list.
-    Each object *has* to contain the columns:
-    FLIGHT_ID, ORIGIN_AIRPORT, DESTINATION_AIRPORT, AIRLINE, and DELAY.
-    """
-    for result in results:
-        # turn result into dictionary
-        result = result._mapping
-
-        # Check that all required columns are in place
-        try:
-            delay = int(result['DELAY']) if result['DELAY'] else 0  # If delay columns is NULL, set it to 0
-            origin = result['ORIGIN_AIRPORT']
-            dest = result['DESTINATION_AIRPORT']
-            airline = result['AIRLINE']
-        except (ValueError, sqlalchemy.exc.SQLAlchemyError) as e:
-            print("Error showing results: ", e)
-            return
-
-        # Different prints for delayed and non-delayed flights
-        if delay and delay > 0:
-            print(f"{result['ID']}. {origin} -> {dest} by {airline}, Delay: {delay} Minutes")
-        else:
-            print(f"{result['ID']}. {origin} -> {dest} by {airline}")
-    
-    # Moved to end for visibility in console output
-    print(f"Got {len(results)} results.")
-
-    y_n = input("Would you like to export this data to a CSV file? (y/n) ")
-    if y_n.lower() == 'y':
-        try:
-            filename = input("Enter filename (e.g., results.csv): ")
-            with open(filename, 'w', newline='') as file:
-                writer = csv.DictWriter(
-                file,
-                fieldnames=[
-                    'ID',
-                    'ORIGIN_AIRPORT',
-                    'DESTINATION_AIRPORT',
-                    'AIRLINE',
-                    'DELAY'
-                ],
-                extrasaction='ignore')
-                writer.writeheader()
-                for result in results:
-                    data = result._mapping
-                    writer.writerow(data)
-        except FileNotFoundError:
-            print('Failed to save results due to invalid filename.')
 
 
 def show_menu_and_get_input():
