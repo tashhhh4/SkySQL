@@ -17,6 +17,7 @@ from matplotlib import (
 BLUE = "#2476b3"
 COLOR_GRADIENT = colormap.YlGnBu
 RED_GRADIENT = colormap.Reds
+RED_GREEN_GRADIENT =
 COLORMAP_3 = colormap.viridis_r
 GLOBAL_EXTENT = [-180, 180, -90, 90]
 USA_EXTENT = [-127, -68.5, 24, 45] # min_lon, max_lon, min_lat, max_lat
@@ -172,50 +173,22 @@ def draw_pct_delay_by_route_map(data):
     ax.add_image(tiler, 5) # Zoom level - the higher,
                            # the more tiles to download
 
-    print('ax is', type(ax))
-    print('tiler.crs is', tiler.crs, type(tiler.crs))
-
     for route, pct in zip(data["routes"], data["pcts"]):
         ((origin_lat, origin_lon),
          (destination_lat, destination_lon)) = route
-
-        # print('route is', route)
-        # print('origin:', origin_lat, origin_lon)
-        # print('destination:', destination_lat, destination_lon)
+        origin_lat = float(origin_lat)
+        origin_lon = float(origin_lon)
+        destination_lat = float(destination_lat)
+        destination_lon = float(destination_lon)
 
         ax.plot(
             [origin_lon, destination_lon],
             [origin_lat, destination_lat],
             transform=ccrs.PlateCarree(),
             color="red",
-            linewidth=5,
-            zorder=100,
+            linewidth=1,
+            alpha=0.1,
         )
-
-    ax.scatter(
-        [-84.42694],
-        [33.64044],
-        transform=ccrs.PlateCarree(),
-        color="yellow",
-        s=100,
-        zorder=1000,
-    )
-
-    ax.plot(
-        [-84.42694, -72.68323],
-        [33.64044, 41.93887],
-        color="red",
-        linewidth=5,
-    )
-
-    ax.plot(
-        [-84.42694, -72.68323],
-        [33.64044, 41.93887],
-        transform=ccrs.PlateCarree(),
-        color="red",
-        linewidth=8,
-        zorder=1000,
-    )
 
     fig.canvas.draw()
 
