@@ -11,7 +11,8 @@ import rasterio
 from PIL import Image
 from matplotlib import (
     pyplot, colors,
-    cm as colormap
+    cm as colormap,
+    ticker,
 )
 
 import statistics
@@ -29,7 +30,7 @@ GREED_RED_GRADIENT = colors.LinearSegmentedColormap.from_list(
 )
 COLORMAP_3 = colormap.viridis_r
 GLOBAL_EXTENT = [-180, 180, -90, 90]
-USA_EXTENT = [-127, -68.5, 24, 45] # min_lon, max_lon, min_lat, max_lat
+USA_EXTENT = [-127, -68.5, 25, 49] # min_lon, max_lon, min_lat, max_lat
 
 
 def max_2(list_):
@@ -101,7 +102,7 @@ def draw_pct_delay_by_hour(data):
     percentages = data["percentages"]
 
     fig, ax = pyplot.subplots(
-        figsize=(12, 6),
+        figsize=(12, 7),
         dpi=100,
     )
     ax.bar(hours, percentages, color="gray")
@@ -112,6 +113,8 @@ def draw_pct_delay_by_hour(data):
     ymin, ymax = ax.get_ylim()
 
     normalization = colors.Normalize(vmin=ymin, vmax=ymax)
+        # A normalization is basically an even distribution of
+        # values between a set minimum and maximum.
     cmap = COLOR_GRADIENT
     chart_colors = cmap(normalization(percentages))
 
@@ -192,7 +195,7 @@ def draw_pct_delay_by_route_map(data):
 
     tiler = OSM()
 
-    fig = pyplot.figure(figsize=(12, 6), dpi=100)
+    fig = pyplot.figure(figsize=(12, 7), dpi=100)
     ax = pyplot.axes(projection=tiler.crs)
     ax.set_extent(USA_EXTENT, crs=ccrs.PlateCarree())
     ax.add_image(tiler, 5) # Zoom level - the higher,
@@ -214,15 +217,38 @@ def draw_pct_delay_by_route_map(data):
 
         color = cmap(normalization(pct))
 
+        # Background Solid Line
         ax.plot(
             [origin_lon, destination_lon],
             [origin_lat, destination_lat],
             transform=ccrs.PlateCarree(),
             color=color,
-            linewidth=1,
-            alpha=0.6,
+            linewidth=1.5,
+            alpha=0.2,
+        )
+        # Foreground Dashed Line
+        ax.plot(
+            [origin_lon, destination_lon],
+            [origin_lat, destination_lat],
+            transform=ccrs.PlateCarree(),
+            color=color,
+            linewidth=1.5,
+            alpha=0.5,
+            dashes = [8, 8],
         )
 
-    fig.canvas.draw()
+    cax = ax.inset_axes([0.66, 0.90, 0.3, 0.02])
+                    # [left, bottom, width, height]
+
+    scalar_mappable = colormap.ScalarMappable(norm=normalization, cmap=cmap)
+    scalar_mappable.set_array([])
+    cbar = fig.colorbar(scalar_mappable, cax=cax, orientation="horizontal")
+    cbar.outline.set_visible(False)
+    cbar.ax.spines["top"].set_visible(True)
+    cbar.ax.xaxis.set_ticks_position("top")
+
+    color_ticks = numpy.linspace(normalization.vmin, normalization.vmax, 3)
+    cbar.set_ticks(color_ticks)
+    cbar.set_ticklabels([f"{t:.0f}%" for t in color_ticks])
 
     return fig
