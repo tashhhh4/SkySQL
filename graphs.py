@@ -1,21 +1,11 @@
 import numpy
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 from cartopy.io.img_tiles import OSM
-import contextily
-import folium
-import geodatasets
-import geopandas
-import pandas
-import rasterio
-from PIL import Image
 from matplotlib import (
     pyplot, colors,
     cm as colormap,
-    ticker,
 )
 
-import statistics
 
 BLUE = "#2476b3"
 COLOR_GRADIENT = colormap.YlGnBu

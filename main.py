@@ -13,7 +13,9 @@ def save_fig(fig):
     creating a new png image in the local filesystem.
     `fig` must be a figure created from the matplotlib library.
     """
-    filename = input("Enter filename (e.g., chart.png): ")
+    filename = input("Enter filename (e.g., chart.png): ").strip()
+    if filename == '':
+        print('Failed to save results due to invalid filename.')
     fig.savefig(filename, pad_inches=0, bbox_inches='tight')
 
 
